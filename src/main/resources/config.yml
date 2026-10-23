@@ -1,0 +1,91 @@
+# ============================================================================
+# AdminWatch configuration
+# ============================================================================
+# Every category has its OWN webhook. Events are sent exclusively to the webhook
+# of their category. A disabled / empty / invalid webhook never stops local
+# (SQLite) recording. Webhook URLs are never printed by commands or logs.
+webhooks:
+  commands:
+    enabled: true
+    url: ""
+  creative_items:
+    enabled: true
+    url: ""
+  block_changes:
+  log-placed: true
+  log-broken: true
+  # Placement is only logged for the blocks in high-value-blocks (breaking is unaffected).
+  # Set to false to log every placed block.
+  place-high-value-only: true
+  # Exact names, suffix (*_ORE) or prefix (DEEPSLATE_*) patterns. Command blocks are always
+  # reported in the command_blocks webhook.
+  high-value-blocks:
+    - "*_ORE"
+    - ANCIENT_DEBRIS
+    - "*SHULKER_BOX"
+    - NETHERITE_BLOCK
+    - DIAMOND_BLOCK
+    - EMERALD_BLOCK
+    - GOLD_BLOCK
+    - BEACON
+    - SPAWNER
+    - TRIAL_SPAWNER
+    - DRAGON_EGG
+  creative-only: false         # true = only log while the admin is in Creative
+  ignored-worlds: []
+  ignored-materials: []
+  only-materials: []
+
+# Alerts ping a Discord role/user in the SAME category webhook as the event.
+alerts:
+  enabled: true
+  # Examples: "<@&123456789012345678>" (role), "<@123456789012345678>" (user), "@everyone", "@here".
+  # Several can be separated by spaces. Empty = alerts are marked in the embed but nobody is pinged.
+  mention: ""
+  command-block-placed: true   # command block / command block minecart placed
+  # Alert when an admin takes/obtains at least this many of an item (creative create/pickup,
+  # container take, or taking items out of an InvSee++ inspected inventory).
+  # "full" = a full stack (64 for blocks, 16 for ender pearls, ...), or give a number.
+  valuable-items:
+    NETHERITE_BLOCK: full
+    NETHERITE_INGOT: full
+    NETHERITE_SCRAP: full
+    DIAMOND_BLOCK: full
+    DIAMOND: full
+    EMERALD_BLOCK: full
+    ANCIENT_DEBRIS: full
+    ENCHANTED_GOLDEN_APPLE: 8
+    ELYTRA: 1
+    BEACON: 1
+    DRAGON_EGG: 1
+    SPAWNER: 1
+    TOTEM_OF_UNDYING: 8
+  # Alert when one of these blocks is placed (also always logged, even if not high-value)
+  valuable-block-place:
+    - BEACON
+    - SPAWNER
+    - DRAGON_EGG
+
+command_blocks:
+  log-command-text: true       # include command text (secrets/URLs are redacted)
+  watch-seconds: 120           # how long a command-block GUI is watched for edits after right-click
+  ignored-worlds: []
+
+database:
+  file: "adminwatch.db"
+  retention-days: 90           # 0 = keep forever
+  cleanup-interval-minutes: 60
+
+integrations:
+  invsee:
+    enabled: true
+    plugin-name: "InvSeePlusPlus"
+    ignore-self-inspection: true
+  reroll:
+    # Public API / event (AdminRerollEvent) is always available for other plugins.
+    api-enabled: true
+    inventoryrollbackplus:
+      enabled: true
+      plugin-name: "InventoryRollbackPlus"
+      # Seconds after "/ir restore" during which GUI clicks are watched for restores
+      session-seconds: 600

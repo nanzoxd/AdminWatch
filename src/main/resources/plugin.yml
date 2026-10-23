@@ -1,0 +1,36 @@
+name: AdminWatch
+main: dev.adminwatch.AdminWatchPlugin
+version: '${project.version}'
+api-version: '1.21'
+description: Administrator audit logging with per-category Discord webhooks and a local SQLite history.
+authors: [AdminWatch]
+softdepend: [InvSeePlusPlus, InventoryRollbackPlus]
+libraries:
+  - org.xerial:sqlite-jdbc:3.46.1.3
+
+commands:
+  adminwatch:
+    description: AdminWatch audit commands
+    usage: /adminwatch <lookup|history|reload|status> [player] [page]
+    aliases: [awatch, aw]
+
+permissions:
+  adminwatch.admin:
+    description: Full access to AdminWatch commands
+    default: op
+    children:
+      adminwatch.lookup: true
+      adminwatch.history: true
+      adminwatch.reload: true
+  adminwatch.lookup:
+    description: Use /adminwatch lookup
+    default: false
+  adminwatch.history:
+    description: Use /adminwatch history
+    default: false
+  adminwatch.reload:
+    description: Use /adminwatch reload
+    default: false
+  adminwatch.monitored:
+    description: Players holding this permission are audited by AdminWatch (configurable in config.yml)
+    default: op
