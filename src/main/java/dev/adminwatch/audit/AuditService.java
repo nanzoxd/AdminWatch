@@ -35,5 +35,8 @@ public final class AuditService {
         String initial = plugin.webhooks().initialStatus(event.category());
         plugin.database().insert(event, initial).whenComplete((id, err) ->
                 plugin.webhooks().submit(event, (err != null || id == null) ? -1L : id));
+        if (event.alertReason() != null && plugin.settings().alertsEnabled) {
+            plugin.webhooks().submit(event.toAlert(), -1L); // alerts webhook only
+        }
     }
 }

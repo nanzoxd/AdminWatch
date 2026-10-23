@@ -1,9 +1,8 @@
 # ============================================================================
 # AdminWatch configuration
 # ============================================================================
-# Every category has its OWN webhook. Events are sent exclusively to the webhook
-# of their category. A disabled / empty / invalid webhook never stops local
-# (SQLite) recording. Webhook URLs are never printed by commands or logs.
+# Each webhook below receives ONLY its own events. A disabled / empty / invalid
+# webhook never stops local (SQLite) recording. URLs are never printed anywhere.
 webhooks:
   commands:
     enabled: true
@@ -12,13 +11,103 @@ webhooks:
     enabled: true
     url: ""
   block_changes:
+    enabled: true
+    url: ""
+  command_blocks:
+    enabled: true
+    url: ""
+  # Inventory inspections AND inventory modifications share this ONE webhook
+  inventory_inspections:
+    enabled: true
+    url: ""
+  inventory_rerolls:
+    enabled: true
+    url: ""
+  # Alerts ONLY (command block placed, valuable items taken, ...). Every alert is posted here
+  # with the mention, admin, world and coordinates. The normal event still goes to its own webhook (no ping).
+  alerts:
+    enabled: true
+    url: ""
+
+discord:
+  username: "AdminWatch"
+  avatar-url: ""
+  queue:
+    capacity: 500            # max pending messages PER webhook; overflow is dropped from Discord (still stored locally)
+    min-interval-ms: 600     # minimum delay between two requests to the same webhook
+    max-retries: 5           # retries for HTTP 429 / 5xx / network errors
+    retry-backoff-ms: 2000   # base delay, doubled each retry (429 uses Discord's retry_after)
+    request-timeout-seconds: 10
+
+embed:
+  show-timestamp: true
+  footer: "AdminWatch"
+  colors:
+    commands: "#3498DB"
+    creative_items: "#9B59B6"
+    block_changes: "#E67E22"
+    command_blocks: "#E74C3C"
+    inventory_inspections: "#1ABC9C"
+    inventory_modifications: "#F1C40F"
+    inventory_rerolls: "#2ECC71"
+    alerts: "#FF0000"
+
+time:
+  timezone: "Asia/Kolkata"
+  format: "yyyy-MM-dd HH:mm:ss z"
+  short-format: "HH:mm:ss z"
+
+monitoring:
+  permission: "adminwatch.monitored"   # default: op (see plugin.yml)
+  ignored-players: []                  # names or UUIDs never audited
+  ignored-worlds: []                   # worlds ignored by ALL categories
+
+commands:
+  log-players: true
+  log-console: true
+  log-rcon: true
+  ignored-commands: []
+  sensitive-commands:                  # arguments always replaced by [REDACTED]
+    - login
+    - l
+    - log
+    - register
+    - reg
+    - unregister
+    - changepassword
+    - changepass
+    - cp
+    - createpassword
+    - setpassword
+    - passwd
+    - password
+    - authme
+    - 2fa
+    - totp
+    - mfa
+    - captcha
+    - verify
+    - nlogin
+    - auth
+  ignored-worlds: []
+
+creative_items:
+  log-created: true
+  log-moves: false
+  log-pickups: true
+  log-container-takes: true
+  ignored-worlds: []
+  ignored-materials: []
+  only-materials: []
+
+block_changes:
   log-placed: true
   log-broken: true
   # Placement is only logged for the blocks in high-value-blocks (breaking is unaffected).
-  # Set to false to log every placed block.
+  # false = log every placed block.
   place-high-value-only: true
-  # Exact names, suffix (*_ORE) or prefix (DEEPSLATE_*) patterns. Command blocks are always
-  # reported in the command_blocks webhook.
+  # Exact names, suffix (*_ORE) or prefix (DEEPSLATE_*) patterns.
+  # Command blocks are always reported in the command_blocks webhook.
   high-value-blocks:
     - "*_ORE"
     - ANCIENT_DEBRIS
@@ -31,21 +120,25 @@ webhooks:
     - SPAWNER
     - TRIAL_SPAWNER
     - DRAGON_EGG
-  creative-only: false         # true = only log while the admin is in Creative
+  creative-only: false
   ignored-worlds: []
   ignored-materials: []
   only-materials: []
 
-# Alerts ping a Discord role/user in the SAME category webhook as the event.
+command_blocks:
+  log-command-text: true
+  watch-seconds: 120
+  ignored-worlds: []
+
 alerts:
   enabled: true
-  # Examples: "<@&123456789012345678>" (role), "<@123456789012345678>" (user), "@everyone", "@here".
-  # Several can be separated by spaces. Empty = alerts are marked in the embed but nobody is pinged.
+  # Pinged in the alerts webhook. Examples: "<@&123456789012345678>" (role), "<@123456789012345678>" (user),
+  # "@everyone", "@here"; separate several with spaces. Empty = alerts are posted without a ping.
   mention: ""
-  command-block-placed: true   # command block / command block minecart placed
-  # Alert when an admin takes/obtains at least this many of an item (creative create/pickup,
+  command-block-placed: true     # command block / command block minecart placed
+  # Alert when an admin takes/obtains at least this many of an item (Creative create/pickup,
   # container take, or taking items out of an InvSee++ inspected inventory).
-  # "full" = a full stack (64 for blocks, 16 for ender pearls, ...), or give a number.
+  # "full" = a full stack, or give a number.
   valuable-items:
     NETHERITE_BLOCK: full
     NETHERITE_INGOT: full
@@ -60,20 +153,15 @@ alerts:
     DRAGON_EGG: 1
     SPAWNER: 1
     TOTEM_OF_UNDYING: 8
-  # Alert when one of these blocks is placed (also always logged, even if not high-value)
+  # Alert when one of these blocks is placed (always logged, even if not "high-value")
   valuable-block-place:
     - BEACON
     - SPAWNER
     - DRAGON_EGG
 
-command_blocks:
-  log-command-text: true       # include command text (secrets/URLs are redacted)
-  watch-seconds: 120           # how long a command-block GUI is watched for edits after right-click
-  ignored-worlds: []
-
 database:
   file: "adminwatch.db"
-  retention-days: 90           # 0 = keep forever
+  retention-days: 90             # 0 = keep forever
   cleanup-interval-minutes: 60
 
 integrations:
@@ -82,10 +170,8 @@ integrations:
     plugin-name: "InvSeePlusPlus"
     ignore-self-inspection: true
   reroll:
-    # Public API / event (AdminRerollEvent) is always available for other plugins.
     api-enabled: true
     inventoryrollbackplus:
       enabled: true
       plugin-name: "InventoryRollbackPlus"
-      # Seconds after "/ir restore" during which GUI clicks are watched for restores
       session-seconds: 600

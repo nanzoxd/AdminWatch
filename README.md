@@ -39,7 +39,7 @@ for people who must not be logged. `monitoring.ignored-players` / `ignored-world
 
 `adminwatch.admin` (default op) includes lookup, history and reload. Aliases: `/aw`, `/awatch`.
 
-## Webhook categories (strictly separated)
+## Webhooks (7 in config.yml)
 
 | Config key | Content |
 |---|---|
@@ -47,9 +47,9 @@ for people who must not be logged. `monitoring.ignored-players` / `ignored-world
 | `creative_items` | items created or obtained in Creative |
 | `block_changes` | block place / break |
 | `command_blocks` | command block (and command block minecart) place / break / command edits |
-| `inventory_inspections` | InvSee++ inspection sessions (open, close, duration) |
-| `inventory_modifications` | items added / removed / replaced / transferred in inspected inventories |
+| `inventory_inspections` | InvSee++ inspection sessions **and** the item modifications made during them (one shared webhook) |
 | `inventory_rerolls` | inventory / ender chest restores |
+| `alerts` | alerts only: command block placed, valuable items taken, valuable blocks placed - with mention, admin, world and coordinates |
 
 Each category has an independent queue and worker thread; HTTP never runs on the main thread. 429 responses honour
 Discord's `retry_after`; 5xx/network errors retry with exponential back-off; a full queue drops only the *Discord* message
@@ -152,3 +152,6 @@ and test on a staging server before production use; report compiler errors, if a
   a command block is placed; an admin obtains/takes at least the configured amount of a `valuable-items` entry
   (`full` = full stack) via Creative, containers or an InvSee++ inspected inventory; or a `valuable-block-place` block is placed.
   Only the configured mention can ping; logged text never can.
+
+
+Alerts are posted to the `alerts` webhook (with the `alerts.mention` ping); the normal event still goes to its own webhook without a ping.

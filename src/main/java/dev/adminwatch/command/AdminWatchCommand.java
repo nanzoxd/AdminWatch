@@ -54,7 +54,7 @@ public final class AdminWatchCommand implements TabExecutor {
                 if (!need(sender, "adminwatch.reload")) return true;
                 try {
                     plugin.reload();
-                    msg(sender, "Configuration reloaded. Active webhooks: " + plugin.activeWebhookCount() + "/" + Category.values().length, NamedTextColor.GREEN);
+                    msg(sender, "Configuration reloaded. Active webhooks: " + plugin.activeWebhookCount() + "/" + plugin.webhookSlots(), NamedTextColor.GREEN);
                 } catch (Exception ex) {
                     msg(sender, "Reload failed: " + ex.getClass().getSimpleName() + " (see console)", NamedTextColor.RED);
                     plugin.getLogger().warning("Reload failed: " + ex);

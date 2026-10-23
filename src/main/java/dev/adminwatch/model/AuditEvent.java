@@ -61,6 +61,26 @@ public final class AuditEvent {
     public String alertReason() { return alertReason; }
     public Map<String, String> fields() { return fields; }
 
+    /** Alert copy of this event (same admin, world, coordinates, details) for the alerts webhook. */
+    public AuditEvent toAlert() {
+        Builder b = new Builder(Category.ALERTS, action);
+        b.time = time;
+        b.adminName = adminName;
+        b.adminUuid = adminUuid;
+        b.targetName = targetName;
+        b.targetUuid = targetUuid;
+        b.world = world;
+        b.x = x;
+        b.y = y;
+        b.z = z;
+        b.title = "ADMIN ALERT";
+        b.summary = alertReason;
+        b.alertReason = alertReason;
+        b.fields.put("Source Category", category.key());
+        b.fields.putAll(fields);
+        return b.build();
+    }
+
     public static Builder builder(Category category, String action) {
         return new Builder(category, action);
     }

@@ -199,7 +199,10 @@ public final class Settings {
         return amount >= threshold ? "Valuable item: " + m.name() + " × " + amount : null;
     }
 
-    public Webhook webhook(Category c) { return webhooks.get(c); }
+    /** inventory_modifications shares the inventory_inspections webhook. */
+    public Webhook webhook(Category c) {
+        return webhooks.get(c == Category.INVENTORY_MODIFICATIONS ? Category.INVENTORY_INSPECTIONS : c);
+    }
     public int color(Category c) { return colors.get(c); }
 
     public boolean worldIgnored(Category c, String world) {

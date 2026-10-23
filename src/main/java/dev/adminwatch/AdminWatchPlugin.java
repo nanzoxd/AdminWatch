@@ -67,7 +67,7 @@ public final class AdminWatchPlugin extends JavaPlugin {
         }
         scheduleCleanup();
         getLogger().info("AdminWatch enabled. Webhooks active: " + activeWebhookCount() + "/"
-                + dev.adminwatch.model.Category.values().length
+                + webhookSlots()
                 + ", database " + (database.isAvailable() ? "ready" : "UNAVAILABLE"));
     }
 
@@ -93,9 +93,13 @@ public final class AdminWatchPlugin extends JavaPlugin {
 
     public int activeWebhookCount() {
         int n = 0;
-        for (var c : dev.adminwatch.model.Category.values()) if (settings.webhook(c).deliverable()) n++;
+        for (var c : dev.adminwatch.model.Category.values()) {
+            if (c != dev.adminwatch.model.Category.INVENTORY_MODIFICATIONS && settings.webhook(c).deliverable()) n++;
+        }
         return n;
     }
+
+    public int webhookSlots() { return dev.adminwatch.model.Category.values().length - 1; }
 
     private void scheduleCleanup() {
         if (cleanupTask != null) cleanupTask.cancel();

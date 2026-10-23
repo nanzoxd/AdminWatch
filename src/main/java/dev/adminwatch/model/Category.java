@@ -8,7 +8,9 @@ public enum Category {
     COMMAND_BLOCKS("command_blocks", "ADMIN COMMAND BLOCK ACTIVITY", 0xE74C3C),
     INVENTORY_INSPECTIONS("inventory_inspections", "ADMIN INVENTORY INSPECTION", 0x1ABC9C),
     INVENTORY_MODIFICATIONS("inventory_modifications", "ADMIN INVENTORY MODIFICATION", 0xF1C40F),
-    INVENTORY_REROLLS("inventory_rerolls", "ADMIN INVENTORY REROLL", 0x2ECC71);
+    INVENTORY_REROLLS("inventory_rerolls", "ADMIN INVENTORY REROLL", 0x2ECC71),
+    /** Not stored as its own record type: alert copies of other events, sent to the alerts webhook. */
+    ALERTS("alerts", "ADMIN ALERT", 0xFF0000);
 
     private final String key;
     private final String title;

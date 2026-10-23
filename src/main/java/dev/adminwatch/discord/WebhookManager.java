@@ -98,7 +98,9 @@ public final class WebhookManager {
     public WebhookManager(AdminWatchPlugin plugin, Settings settings) {
         this.plugin = plugin;
         this.settings = settings;
-        for (Category c : Category.values()) channels.put(c, new Channel(c));
+        for (Category c : Category.values()) {
+            if (c != Category.INVENTORY_MODIFICATIONS) channels.put(c, new Channel(c)); // shares inspections
+        }
     }
 
     public void reconfigure(Settings s) { this.settings = s; }
@@ -110,7 +112,7 @@ public final class WebhookManager {
 
     /** Queues an event on its OWN category queue only. Never blocks. */
     public void submit(AuditEvent event, long dbId) {
-        Channel ch = channels.get(event.category());
+        Channel ch = channelOf(event.category());
         if (!settings.webhook(event.category()).deliverable()) return;
         if (ch.queue.size() >= settings.queueCapacity) {
             ch.stats.dropped.incrementAndGet();
@@ -121,11 +123,16 @@ public final class WebhookManager {
         ch.queue.offer(new Job(event, dbId));
     }
 
+    private Channel channelOf(Category c) {
+        return channels.get(c == Category.INVENTORY_MODIFICATIONS ? Category.INVENTORY_INSPECTIONS : c);
+    }
+
     public Map<Category, Stats> stats() {
         Map<Category, Stats> out = new EnumMap<>(Category.class);
-        for (var e : channels.entrySet()) {
-            e.getValue().stats.queued = e.getValue().queue.size();
-            out.put(e.getKey(), e.getValue().stats);
+        for (Category c : Category.values()) {
+            Channel ch = channelOf(c);
+            ch.stats.queued = ch.queue.size();
+            out.put(c, ch.stats);
         }
         return out;
     }
@@ -139,7 +146,7 @@ public final class WebhookManager {
             boolean first = true;
             for (Embed embed : embeds) { // one embed per message keeps every message far below Discord limits
                 String content = null;
-                if (first && job.event().alertReason() != null && s.alertsEnabled && !s.alertMention.isEmpty()) {
+                if (ch.category == Category.ALERTS && first && job.event().alertReason() != null && !s.alertMention.isEmpty()) {
                     content = s.alertMention + " ⚠ " + job.event().alertReason();
                 }
                 first = false;
